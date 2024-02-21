@@ -1,0 +1,4 @@
+keras
+tensorflow==2.15.0
+numpy==1.26.4
+# pip install keras==3.0.5 after
