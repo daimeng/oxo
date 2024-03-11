@@ -1,7 +1,7 @@
 from game import TicTacToe
 from keras.models import Sequential
 from keras.layers import Dense, Input
-from player import RandomPlayer
+from player import AiPlayer, RandomPlayer
 import numpy as np
 
 X = []
@@ -9,16 +9,17 @@ w = []
 y = []
 
 if __name__ == "__main__":
+    game = TicTacToe()
     for i in range(1000):
-        game = TicTacToe(players=[RandomPlayer(), RandomPlayer()])
+        game.reset()
+        players = [AiPlayer(), AiPlayer()]
 
         while True:
-            cell = game.curr_player().request_move(game.board, game.left)
+            player = players[int(game.current_player_id != 1)]
+            cell = player.request_move(game)
             X.append(game.board)
-            w.append(game.winner)
             y.append(cell)
-            over = game.make_move(cell)
-            if over:
+            if game.make_move(cell) != 2:
                 break
 
     X = np.asarray(X)
@@ -27,8 +28,10 @@ if __name__ == "__main__":
 
     model = Sequential()
     model.add(Input(shape=(9,)))
-    model.add(Dense(9, activation="relu"))
+    model.add(Dense(256, activation="relu"))
     model.add(Dense(1, activation="softmax"))
-    model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
-    model.fit(X, [w, y], epochs=100, batch_size=64)
+    model.compile(
+        loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"]
+    )
+    model.fit([X, w], y, epochs=100, batch_size=64)
     model.save("model.keras")
