@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Any
+from typing import DefaultDict
 import random
 from game import TicTacToe
+from collections import defaultdict
 
 # from keras import Model, saving
 import numpy as np
@@ -22,29 +23,53 @@ class HumanPlayer(Player):
 
 class RandomPlayer(Player):
     def request_move(self, game: TicTacToe) -> int:
-        r = 1 + random.randint(0, game.left + 1)
+        r = random.randint(0, game.left)
+        rr = r
         for i, cell in enumerate(game.board):
             if cell == 0:
-                r -= 1
-            if r == 0:
+                rr -= 1
+            if rr <= 0:
                 return i
-        raise Exception("Something went wrong.")
+        raise Exception(
+            f"Something went wrong: r={r}, rr={rr}, left={game.left}\n{game.board.reshape(3, 3)}"
+        )
 
 
 randy = RandomPlayer()
 
+NEWROW = lambda: np.zeros(9)
+
 
 class AiPlayer(Player):
-    # model: Any
+    Q: DefaultDict[bytes, np.ndarray]
+    lr: float
+    discount: float
+    greed: float
 
-    # def __init__(self, filepath: str):
-    #     self.model = saving.load_model(filepath)
+    def __init__(self, lr=0.1, discount=1.0, greed=0.5):
+        self.Q = defaultdict(NEWROW)
+        self.lr = lr
+        self.discount = discount
+        self.greed = greed
 
     def request_move(self, game: TicTacToe) -> int:
-        # r = self.model.predict(np.expand_dims(board, axis=0))
-        # r = int(r[0][0])
-        # if board[r] == 0:
-        #     return r
+        state = game.board.tobytes()
 
-        # print("Invalid move, selecting randomly")
-        return randy.request_move(game)
+        if random.uniform(0, 1) < self.greed:
+            action = randy.request_move(game)
+        else:
+            action = int(np.argmax(self.Q[state]))
+
+        return action
+
+    def update(self, state: bytes, action: int, reward: float, nstate: bytes):
+        oldv = self.Q[state][action]
+
+        # max of new state
+        next_max = np.max(self.Q[nstate])
+
+        # higher learning rate takes more from future rewards
+        newv = (1 - self.lr) * oldv + self.lr * (reward + self.discount * next_max)
+
+        # update
+        self.Q[nstate][action] = newv
