@@ -1,12 +1,12 @@
 import os
 from game import TicTacToe, print_board
-from player import AiPlayer, Player, RandomPlayer
+from player import AiPlayer, Player, RandomPlayer, HumanPlayer
 from typing import Any, Optional
 
 
 if __name__ == "__main__":
     game = TicTacToe()
-    players: list[Player] = [AiPlayer(), RandomPlayer()]
+    players: list[Player] = [AiPlayer(), AiPlayer()]
     xp: list[Optional[tuple[bytes, int, float]]] = [None, None]
     wins0 = 0
     wins1 = 0
@@ -66,6 +66,20 @@ if __name__ == "__main__":
                     player.update(s, a, -r, state)
 
     print(wins0, wins1)
+
+    if isinstance(players[0], AiPlayer):
+        players[0].greed = 0
+    players: list[Player] = [players[0], HumanPlayer()]
+
+    for _ in range(1000):
+        game.reset()
+
+        while True:
+            print_board(game.board)
+            player = players[int(game.current_player_id != 1)]  # 1 -> 0, -1 -> 1
+            cell = player.request_move(game)
+            if game.make_move(cell) < 2:
+                break
 
     # if isinstance(players[0], AiPlayer):
     #     players[0].greed = 0

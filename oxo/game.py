@@ -64,7 +64,7 @@ def print_board(board: np.ndarray):
             if cell == 1:
                 print(" X", end="")
             elif cell == 0:
-                print("  ", end="")
+                print(" .", end="")
             elif cell == -1:
                 print(" O", end="")
         print("")
