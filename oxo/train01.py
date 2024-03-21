@@ -1,5 +1,5 @@
 import os
-from game import TicTacToe
+from game import TicTacToe, print_board
 from player import AiPlayer, Player, RandomPlayer
 from typing import Any, Optional
 
@@ -11,7 +11,7 @@ if __name__ == "__main__":
     wins0 = 0
     wins1 = 0
 
-    for _ in range(1):
+    for _ in range(100000):
         game.reset()
         # players[0].greed *= 0.99
         # players[1].greed *= 0.99
@@ -23,8 +23,15 @@ if __name__ == "__main__":
             player = players[pnum]
 
             state = game.board.tobytes()
-            action = player.request_move(game)
 
+            # update experience before replacing
+            lastxp = xp[pnum]
+            if lastxp is not None and isinstance(player, AiPlayer):
+                s, a, r = lastxp
+                player.update(s, a, r, state)
+
+            # get next experience
+            action = player.request_move(game)
             reward = 0.0
             match game.make_move(action):
                 case 3:
@@ -42,23 +49,21 @@ if __name__ == "__main__":
                         wins1 += 1
                     done = True
 
-            # learn xp before replacing
-            lastxp = xp[pnum]
-            if lastxp is not None and isinstance(player, AiPlayer):
-                s, a, r = lastxp
-                player.update(s, a, r, state)
-
-            # replace xp
             xp[pnum] = (state, action, reward)
 
-            # final update for losing player
-            pnum2 = int(game.current_player_id != 1)
-            player2 = players[pnum2]
-            lastxp2 = xp[pnum2]
+            # if final state
+            if done:
+                if isinstance(player, AiPlayer):
+                    player.update(state, action, reward, game.board.tobytes())
 
-            if done and lastxp2 is not None and isinstance(player2, AiPlayer):
-                s, a, r = lastxp2
-                player2.update(s, a, r, state)
+                # final update for losing player
+                pnum = int(game.current_player_id != 1)
+                player = players[pnum]
+                lastxp = xp[pnum]
+
+                if lastxp is not None and isinstance(player, AiPlayer):
+                    s, a, r = lastxp
+                    player.update(s, a, -r, state)
 
     print(wins0, wins1)
 

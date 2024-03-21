@@ -63,13 +63,13 @@ class AiPlayer(Player):
         return action
 
     def update(self, state: bytes, action: int, reward: float, nstate: bytes):
-        print_board(np.frombuffer(state, dtype="int8"))
-        print(
-            action,
-            reward,
-        )
-        print_board(np.frombuffer(nstate, dtype="int8"))
-        print("")
+        # print_board(np.frombuffer(state, dtype="int8"))
+        # print(
+        #     action,
+        #     reward,
+        # )
+        # print_board(np.frombuffer(nstate, dtype="int8"))
+        # print("")
 
         oldv = self.Q[state][action]
 
@@ -77,7 +77,6 @@ class AiPlayer(Player):
         next_max = np.max(self.Q[nstate])
 
         # higher learning rate takes more from future rewards
-        newv = (1 - self.lr) * oldv + self.lr * (reward + self.discount * next_max)
-
-        # update
-        self.Q[nstate][action] = newv
+        self.Q[state][action] = (1 - self.lr) * oldv + self.lr * (
+            reward + self.discount * next_max
+        )
