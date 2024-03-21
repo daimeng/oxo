@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import DefaultDict
 import random
-from game import TicTacToe
+from game import TicTacToe, print_board
 from collections import defaultdict
 
 # from keras import Model, saving
@@ -63,6 +63,14 @@ class AiPlayer(Player):
         return action
 
     def update(self, state: bytes, action: int, reward: float, nstate: bytes):
+        print_board(np.frombuffer(state, dtype="int8"))
+        print(
+            action,
+            reward,
+        )
+        print_board(np.frombuffer(nstate, dtype="int8"))
+        print("")
+
         oldv = self.Q[state][action]
 
         # max of new state

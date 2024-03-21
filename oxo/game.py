@@ -18,6 +18,7 @@ class TicTacToe:
     board: np.ndarray
     current_player_id: int
     left: int
+    # b: bytes
 
     def __init__(self):
         self.board = np.zeros(9, dtype="int8")
@@ -41,6 +42,7 @@ class TicTacToe:
 
         # set cell
         self.board[cell] = self.current_player_id
+        # self.b = self.board.tobytes()
         self.left -= 1
 
         winner = self.check_winner()
@@ -53,3 +55,17 @@ class TicTacToe:
             return 0
         else:
             return 2
+
+
+def print_board(board: np.ndarray):
+    print("---->")
+    for row in board.reshape(3, 3):
+        for cell in row:
+            if cell == 1:
+                print(" X", end="")
+            elif cell == 0:
+                print("  ", end="")
+            elif cell == -1:
+                print(" O", end="")
+        print("")
+    print("<----")

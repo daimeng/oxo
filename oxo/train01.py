@@ -1,29 +1,29 @@
 import os
 from game import TicTacToe
-from player import AiPlayer, HumanPlayer, Player
+from player import AiPlayer, Player, RandomPlayer
+from typing import Any, Optional
 
 
 if __name__ == "__main__":
     game = TicTacToe()
-    players: list[AiPlayer] = [AiPlayer(), AiPlayer()]
+    players: list[Player] = [AiPlayer(), RandomPlayer()]
+    xp: list[Optional[tuple[bytes, int, float]]] = [None, None]
+    wins0 = 0
+    wins1 = 0
 
-    for _ in range(1000):
+    for _ in range(1):
         game.reset()
         # players[0].greed *= 0.99
         # players[1].greed *= 0.99
 
         done = False
 
-        state0 = None
-        state1 = None
-        state2 = game.board.tobytes()
-
         while not done:
-            player = players[int(game.current_player_id != 1)]
-            action = player.request_move(game)
+            pnum = int(game.current_player_id != 1)
+            player = players[pnum]
 
-            state0 = state1
-            state1 = state2
+            state = game.board.tobytes()
+            action = player.request_move(game)
 
             reward = 0.0
             match game.make_move(action):
@@ -36,30 +36,54 @@ if __name__ == "__main__":
                     done = True
                 case x:
                     reward = 1
+                    if x == 1:
+                        wins0 += 1
+                    elif x == -1:
+                        wins1 += 1
                     done = True
 
-            state2 = game.board.tobytes()
-            if state0 and state2:
-                player.update(state0, action, reward, state2)
+            # learn xp before replacing
+            lastxp = xp[pnum]
+            if lastxp is not None and isinstance(player, AiPlayer):
+                s, a, r = lastxp
+                player.update(s, a, r, state)
 
-            if done:
-                # final update for losing player
-                player = players[int(game.current_player_id != 1)]
-                player.update(state1, action, -reward, state2)
+            # replace xp
+            xp[pnum] = (state, action, reward)
 
-    players[0].greed = 0
-    players2: list[Player] = [players[0], HumanPlayer()]
-    while True:
-        os.system("clear")
-        game.reset()
+            # final update for losing player
+            pnum2 = int(game.current_player_id != 1)
+            player2 = players[pnum2]
+            lastxp2 = xp[pnum2]
 
-        while True:
-            pnum = int(game.current_player_id != 1)
-            player = players2[pnum]
-            action = player.request_move(game)
-            res = game.make_move(action)
-            os.system("clear")
-            print(f"Player {pnum} plays {action}!")
-            print(game.board.reshape(3, 3))
-            if res < 2:
-                break
+            if done and lastxp2 is not None and isinstance(player2, AiPlayer):
+                s, a, r = lastxp2
+                player2.update(s, a, r, state)
+
+    print(wins0, wins1)
+
+    # if isinstance(players[0], AiPlayer):
+    #     players[0].greed = 0
+    # players2: list[Player] = [RandomPlayer(), RandomPlayer()]
+    # wins0 = 0
+    # wins1 = 0
+    # for _ in range(1000):
+    #     # os.system("clear")
+    #     game.reset()
+
+    #     while True:
+    #         pnum = int(game.current_player_id != 1)
+    #         player = players2[pnum]
+    #         action = player.request_move(game)
+    #         res = game.make_move(action)
+    #         # os.system("clear")
+    #         # print(f"Player {pnum} plays {action}!")
+    #         # print(game.board.reshape(3, 3))
+    #         if res < 2:
+    #             if res == 1:
+    #                 wins0 += 1
+    #             if res == -1:
+    #                 wins1 += 1
+    #             break
+
+    # print(wins0, wins1)
