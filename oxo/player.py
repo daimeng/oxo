@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import DefaultDict
 import random
-from game import TicTacToe, print_board
+from game import TicTacToe, print_board, pack
 from collections import defaultdict
 
 # from keras import Model, saving
@@ -42,7 +42,7 @@ NEWROW = lambda: np.zeros(9)
 
 
 class AiPlayer(Player):
-    Q: DefaultDict[bytes, np.ndarray]
+    Q: DefaultDict[int, np.ndarray]
     lr: float
     discount: float
     greed: float
@@ -54,7 +54,7 @@ class AiPlayer(Player):
         self.greed = greed
 
     def request_move(self, game: TicTacToe) -> int:
-        state = game.board.tobytes()
+        state = pack(game.board)
 
         if random.uniform(0, 1) < self.greed:
             action = randy.request_move(game)
@@ -63,7 +63,7 @@ class AiPlayer(Player):
 
         return action
 
-    def update(self, state: bytes, action: int, reward: float, nstate: bytes):
+    def update(self, state: int, action: int, reward: float, nstate: int):
         # print_board(np.frombuffer(state, dtype="int8"))
         # print(
         #     action,

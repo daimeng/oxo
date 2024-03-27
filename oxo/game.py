@@ -1,4 +1,5 @@
 import numpy as np
+from numba import njit
 
 EMPTY = 0
 
@@ -12,6 +13,44 @@ CHECKS = [
     [0, 4, 8],
     [2, 4, 6],
 ]
+
+
+@njit()
+def pack(board) -> int:
+    s = 0
+    for b in board:
+        s += b + 1
+        s <<= 2
+    return s
+
+
+@njit()
+def check_winner(board) -> int:
+    if abs(board[0] + board[1] + board[2]) == 3:
+        return board[0]
+
+    if abs(board[0] + board[3] + board[6]) == 3:
+        return board[0]
+
+    if abs(board[3] + board[4] + board[5]) == 3:
+        return board[3]
+
+    if abs(board[6] + board[7] + board[8]) == 3:
+        return board[6]
+
+    if abs(board[1] + board[4] + board[7]) == 3:
+        return board[1]
+
+    if abs(board[2] + board[5] + board[8]) == 3:
+        return board[2]
+
+    if abs(board[0] + board[4] + board[8]) == 3:
+        return board[0]
+
+    if abs(board[2] + board[4] + board[6]) == 3:
+        return board[2]
+
+    return 2
 
 
 class TicTacToe:
@@ -29,33 +68,6 @@ class TicTacToe:
         self.board[:] = 0
         self.current_player_id = 1
 
-    def check_winner(self) -> int:
-        if abs(self.board[0] + self.board[1] + self.board[2]) == 3:
-            return self.board[0]
-
-        if abs(self.board[0] + self.board[3] + self.board[6]) == 3:
-            return self.board[0]
-
-        if abs(self.board[3] + self.board[4] + self.board[5]) == 3:
-            return self.board[3]
-
-        if abs(self.board[6] + self.board[7] + self.board[8]) == 3:
-            return self.board[6]
-
-        if abs(self.board[1] + self.board[4] + self.board[7]) == 3:
-            return self.board[1]
-
-        if abs(self.board[2] + self.board[5] + self.board[8]) == 3:
-            return self.board[2]
-
-        if abs(self.board[0] + self.board[4] + self.board[8]) == 3:
-            return self.board[0]
-
-        if abs(self.board[2] + self.board[4] + self.board[6]) == 3:
-            return self.board[2]
-
-        return 2
-
     def make_move(self, cell) -> int:
         if self.board[cell] != EMPTY:
             return 3
@@ -65,7 +77,7 @@ class TicTacToe:
         # self.b = self.board.tobytes()
         self.left -= 1
 
-        winner = self.check_winner()
+        winner = check_winner(self.board)
         # next turn
         self.current_player_id = -self.current_player_id
 

@@ -1,25 +1,29 @@
 import sys
-from game import TicTacToe, print_board
+from numba import njit
+import numpy as np
+from game import TicTacToe, print_board, pack
 from player import AiPlayer, Player, RandomPlayer, HumanPlayer
 from typing import Any, Optional
+import cProfile
 
 
 opts = sys.argv[1:]
 
-if __name__ == "__main__":
+
+def main():
     game = TicTacToe()
     players: list[Player] = [AiPlayer(), AiPlayer()]
-    xp: list[Optional[tuple[bytes, int, float]]] = [None, None]
+    xp: list[Optional[tuple[int, int, float]]] = [None, None]
     wins0 = 0
     wins1 = 0
 
     for _ in range(1000):
-        if isinstance(players[0], AiPlayer):
-            players[0].greed -= 0.0002
+        # if isinstance(players[0], AiPlayer):
+        #     players[0].greed -= 0.0002
         # if isinstance(players[1], AiPlayer):
         #     players[1].greed *= 0.0001
 
-        for _ in range(1000):
+        for _ in range(100):
             game.reset()
 
             done = False
@@ -28,7 +32,7 @@ if __name__ == "__main__":
                 pnum = int(game.current_player_id != 1)
                 player = players[pnum]
 
-                state = game.board.tobytes()
+                state = pack(game.board)
 
                 # update experience before replacing
                 lastxp = xp[pnum]
@@ -60,7 +64,7 @@ if __name__ == "__main__":
                 # if final state
                 if done:
                     if isinstance(player, AiPlayer):
-                        player.update(state, action, reward, game.board.tobytes())
+                        player.update(state, action, reward, pack(game.board))
 
                     # final update for losing player
                     pnum = int(game.current_player_id != 1)
@@ -93,7 +97,7 @@ if __name__ == "__main__":
                 if game.make_move(cell) < 2:
                     break
 
-    else:
+    elif "test" in opts:
         if isinstance(players[0], AiPlayer):
             players[0].greed = 0
         players2: list[Player] = [players[0], RandomPlayer()]
@@ -119,3 +123,33 @@ if __name__ == "__main__":
                     break
 
         print(wins0, wins1)
+
+        if isinstance(players[1], AiPlayer):
+            players[1].greed = 0
+        players2: list[Player] = [RandomPlayer(), players[1]]
+        wins0 = 0
+        wins1 = 0
+        for _ in range(10000):
+            # os.system("clear")
+            game.reset()
+
+            while True:
+                pnum = int(game.current_player_id != 1)
+                player = players2[pnum]
+                action = player.request_move(game)
+                res = game.make_move(action)
+                # os.system("clear")
+                # print(f"Player {pnum} plays {action}!")
+                # print(game.board.reshape(3, 3))
+                if res < 2:
+                    if res == 1:
+                        wins0 += 1
+                    if res == -1:
+                        wins1 += 1
+                    break
+
+        print(wins0, wins1)
+
+
+if __name__ == "__main__":
+    main()
