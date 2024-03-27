@@ -16,8 +16,9 @@ class Player(ABC):
 
 class HumanPlayer(Player):
     def request_move(self, game: TicTacToe) -> int:
-        row = int(input("Enter row (0, 1, 2): "))
-        col = int(input("Enter column (0, 1, 2): "))
+        row, col = input("Enter coords (as 1-3, 1-3): ").split(",")
+        row = int(row.strip()) - 1
+        col = int(col.strip()) - 1
         return row * 3 + col
 
 

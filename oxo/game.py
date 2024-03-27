@@ -30,9 +30,29 @@ class TicTacToe:
         self.current_player_id = 1
 
     def check_winner(self) -> int:
-        for a, b, c in CHECKS:
-            if abs(self.board[a] + self.board[b] + self.board[c]) == 3:
-                return self.board[a]
+        if abs(self.board[0] + self.board[1] + self.board[2]) == 3:
+            return self.board[0]
+
+        if abs(self.board[0] + self.board[3] + self.board[6]) == 3:
+            return self.board[0]
+
+        if abs(self.board[3] + self.board[4] + self.board[5]) == 3:
+            return self.board[3]
+
+        if abs(self.board[6] + self.board[7] + self.board[8]) == 3:
+            return self.board[6]
+
+        if abs(self.board[1] + self.board[4] + self.board[7]) == 3:
+            return self.board[1]
+
+        if abs(self.board[2] + self.board[5] + self.board[8]) == 3:
+            return self.board[2]
+
+        if abs(self.board[0] + self.board[4] + self.board[8]) == 3:
+            return self.board[0]
+
+        if abs(self.board[2] + self.board[4] + self.board[6]) == 3:
+            return self.board[2]
 
         return 2
 
