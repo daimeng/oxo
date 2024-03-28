@@ -1,5 +1,6 @@
 import numpy as np
-from numba import njit
+from numba import njit, types, typeof
+from numba.experimental import jitclass
 
 EMPTY = 0
 
@@ -53,6 +54,14 @@ def check_winner(board) -> int:
     return 2
 
 
+spec = [
+    ("board", typeof(np.array([], dtype="int8"))),
+    ("current_player_id", types.int8),
+    ("left", types.uint8),
+]
+
+
+@jitclass(spec)
 class TicTacToe:
     board: np.ndarray
     current_player_id: int

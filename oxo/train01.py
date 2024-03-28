@@ -1,19 +1,14 @@
 import sys
 from numba import njit
 import numpy as np
-from game import TicTacToe, print_board, pack
-from player import AiPlayer, Player, RandomPlayer, HumanPlayer
+from .game import TicTacToe, print_board, pack
+from .player import AiPlayer, Player, RandomPlayer, HumanPlayer
 from typing import Any, Optional
-import cProfile
 
 
-opts = sys.argv[1:]
-
-
-def main():
-    game = TicTacToe()
-    players: list[Player] = [AiPlayer(), AiPlayer()]
-    xp: list[Optional[tuple[int, int, float]]] = [None, None]
+@njit()
+def train(game: TicTacToe, players: list[Player]):
+    xp: list[tuple[int, int, float]] = [(-1, 0, 0), (-1, 0, 0)]
     wins0 = 0
     wins1 = 0
 
@@ -35,9 +30,8 @@ def main():
                 state = pack(game.board)
 
                 # update experience before replacing
-                lastxp = xp[pnum]
-                if lastxp is not None and isinstance(player, AiPlayer):
-                    s, a, r = lastxp
+                s, a, r = xp[pnum]
+                if s != -1 and isinstance(player, AiPlayer):
                     player.update(s, a, r, state)
 
                 # get next experience
@@ -69,13 +63,20 @@ def main():
                     # final update for losing player
                     pnum = int(game.current_player_id != 1)
                     player = players[pnum]
-                    lastxp = xp[pnum]
+                    s, a, r = xp[pnum]
 
-                    if lastxp is not None and isinstance(player, AiPlayer):
-                        s, a, r = lastxp
+                    if s != -1 and isinstance(player, AiPlayer):
                         player.update(s, a, -r, state)
 
-    print(wins0, wins1)
+    return wins0, wins1
+
+
+def main(opts):
+    game = TicTacToe()
+    players: list[Player] = [AiPlayer(), AiPlayer()]
+
+    w0, w1 = train(game, players)
+    print(w0, w1)
 
     if "play" in opts or "play2" in opts:
         if "play" in opts:
@@ -152,4 +153,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

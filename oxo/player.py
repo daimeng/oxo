@@ -1,19 +1,24 @@
-from abc import ABC, abstractmethod
 from typing import DefaultDict
+from numba import njit, types
+from numba.experimental import jitclass
+from numba.typed import Dict
 import random
-from game import TicTacToe, print_board, pack
+from .game import TicTacToe, print_board, pack
 from collections import defaultdict
 
 # from keras import Model, saving
 import numpy as np
 
 
-class Player(ABC):
-    @abstractmethod
-    def request_move(self, game: TicTacToe) -> int:
+class Player:
+    def __init__(self):
         pass
 
+    def request_move(self, game: TicTacToe) -> int:
+        return 0
 
+
+@jitclass()
 class HumanPlayer(Player):
     def request_move(self, game: TicTacToe) -> int:
         row, col = input("Enter coords (as 1-3, 1-3): ").split(",")
@@ -22,6 +27,7 @@ class HumanPlayer(Player):
         return row * 3 + col
 
 
+@jitclass()
 class RandomPlayer(Player):
     def request_move(self, game: TicTacToe) -> int:
         r = random.randint(0, game.left)
@@ -36,19 +42,37 @@ class RandomPlayer(Player):
         )
 
 
-randy = RandomPlayer()
+@njit()
+def newrow():
+    return np.zeros(9, dtype="int64")
 
-NEWROW = lambda: np.zeros(9)
+
+aispec = [("Q", types.DictType(types.int64, types.int64[:]))]
 
 
+@njit()
+def random_move(game: TicTacToe):
+    r = random.randint(0, game.left)
+    rr = r
+    for i, cell in enumerate(game.board):
+        if cell == 0:
+            rr -= 1
+        if rr <= 0:
+            return i
+    raise Exception(
+        f"Something went wrong: r={r}, rr={rr}, left={game.left}\n{game.board.reshape(3, 3)}"
+    )
+
+
+@jitclass(aispec)
 class AiPlayer(Player):
-    Q: DefaultDict[int, np.ndarray]
+    Q: dict[int, np.ndarray]
     lr: float
     discount: float
     greed: float
 
     def __init__(self, lr=0.1, discount=1.0, greed=0.5):
-        self.Q = defaultdict(NEWROW)
+        self.Q = Dict.empty(key_type=types.int64, value_type=types.int64[:])
         self.lr = lr
         self.discount = discount
         self.greed = greed
@@ -57,9 +81,11 @@ class AiPlayer(Player):
         state = pack(game.board)
 
         if random.uniform(0, 1) < self.greed:
-            action = randy.request_move(game)
-        else:
+            action = random_move(game)
+        elif state in self.Q:
             action = int(np.argmax(self.Q[state]))
+        else:
+            action = random_move(game)
 
         return action
 
@@ -71,6 +97,12 @@ class AiPlayer(Player):
         # )
         # print_board(np.frombuffer(nstate, dtype="int8"))
         # print("")
+
+        if state not in self.Q:
+            self.Q[state] = newrow()
+
+        if nstate not in self.Q:
+            self.Q[nstate] = newrow()
 
         oldv = self.Q[state][action]
 
