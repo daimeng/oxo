@@ -44,10 +44,10 @@ class RandomPlayer(Player):
 
 @njit()
 def newrow():
-    return np.zeros(9, dtype="int64")
+    return np.zeros(9)
 
 
-aispec = [("Q", types.DictType(types.int64, types.int64[:]))]
+aispec = [("Q", types.DictType(types.int64, types.float64[:]))]
 
 
 @njit()
@@ -72,7 +72,7 @@ class AiPlayer(Player):
     greed: float
 
     def __init__(self, lr=0.1, discount=1.0, greed=0.5):
-        self.Q = Dict.empty(key_type=types.int64, value_type=types.int64[:])
+        self.Q = Dict.empty(key_type=types.int64, value_type=types.float64[:])
         self.lr = lr
         self.discount = discount
         self.greed = greed
