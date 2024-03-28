@@ -1,5 +1,5 @@
-from game import TicTacToe
-from player import Player, HumanPlayer, RandomPlayer
+from .game import TicTacToe
+from .player import Player, HumanPlayer, RandomPlayer
 
 # run game: python play.py
 if __name__ == "__main__":

@@ -1,10 +1,8 @@
-from typing import DefaultDict
 from numba import njit, types
 from numba.experimental import jitclass
 from numba.typed import Dict
 import random
-from game import TicTacToe, print_board, pack
-from collections import defaultdict
+from .game import TicTacToe, pack
 
 # from keras import Model, saving
 import numpy as np
@@ -18,7 +16,6 @@ class Player:
         return 0
 
 
-@jitclass()
 class HumanPlayer(Player):
     def request_move(self, game: TicTacToe) -> int:
         row, col = input("Enter coords (as 1-3, 1-3): ").split(",")
@@ -69,18 +66,18 @@ class AiPlayer(Player):
     Q: dict[int, np.ndarray]
     lr: float
     discount: float
-    greed: float
+    epsilon: float
 
-    def __init__(self, lr=0.1, discount=1.0, greed=0.5):
+    def __init__(self, lr=0.1, discount=1.0, epsilon=0.5):
         self.Q = Dict.empty(key_type=types.int64, value_type=types.float64[:])
         self.lr = lr
         self.discount = discount
-        self.greed = greed
+        self.epsilon = epsilon
 
     def request_move(self, game: TicTacToe) -> int:
         state = pack(game.board)
 
-        if random.uniform(0, 1) < self.greed:
+        if random.uniform(0, 1) < self.epsilon:
             action = random_move(game)
         elif state in self.Q:
             action = int(np.argmax(self.Q[state]))

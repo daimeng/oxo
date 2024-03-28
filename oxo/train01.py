@@ -1,9 +1,8 @@
 import sys
 from numba import njit
 import numpy as np
-from game import TicTacToe, print_board, pack
-from player import AiPlayer, Player, RandomPlayer, HumanPlayer
-from typing import Any, Optional
+from .game import TicTacToe, print_board, pack
+from .player import AiPlayer, Player, RandomPlayer, HumanPlayer
 
 
 @njit()
@@ -14,9 +13,9 @@ def train(game: TicTacToe, players: list[Player]):
 
     for _ in range(1000):
         # if isinstance(players[0], AiPlayer):
-        #     players[0].greed -= 0.0002
+        #     players[0].epsilon -= 0.0002
         # if isinstance(players[1], AiPlayer):
-        #     players[1].greed *= 0.0001
+        #     players[1].epsilon *= 0.0001
 
         for _ in range(1000):
             game.reset()
@@ -73,7 +72,7 @@ def train(game: TicTacToe, players: list[Player]):
 
 def main(opts):
     game = TicTacToe()
-    players: list[Player] = [AiPlayer(), AiPlayer()]
+    players: list[Player] = [AiPlayer(epsilon=0.5), AiPlayer(epsilon=0.5)]
 
     w0, w1 = train(game, players)
     print(w0, w1)
@@ -81,11 +80,11 @@ def main(opts):
     if "play" in opts or "play2" in opts:
         if "play" in opts:
             if isinstance(players[0], AiPlayer):
-                players[0].greed = 0
+                players[0].epsilon = 0
             players: list[Player] = [players[0], HumanPlayer()]
         else:
             if isinstance(players[1], AiPlayer):
-                players[1].greed = 0
+                players[1].epsilon = 0
             players: list[Player] = [HumanPlayer(), players[1]]
 
         for _ in range(1000):
@@ -100,7 +99,7 @@ def main(opts):
 
     elif "test" in opts:
         if isinstance(players[0], AiPlayer):
-            players[0].greed = 0
+            players[0].epsilon = 0
         players2: list[Player] = [players[0], RandomPlayer()]
         wins0 = 0
         wins1 = 0
@@ -126,7 +125,7 @@ def main(opts):
         print(wins0, wins1)
 
         if isinstance(players[1], AiPlayer):
-            players[1].greed = 0
+            players[1].epsilon = 0
         players2: list[Player] = [RandomPlayer(), players[1]]
         wins0 = 0
         wins1 = 0
