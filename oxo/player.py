@@ -3,7 +3,7 @@ from numba import njit, types
 from numba.experimental import jitclass
 from numba.typed import Dict
 import random
-from .game import TicTacToe, print_board, pack
+from game import TicTacToe, print_board, pack
 from collections import defaultdict
 
 # from keras import Model, saving

@@ -1,8 +1,8 @@
 import sys
 from numba import njit
 import numpy as np
-from .game import TicTacToe, print_board, pack
-from .player import AiPlayer, Player, RandomPlayer, HumanPlayer
+from game import TicTacToe, print_board, pack
+from player import AiPlayer, Player, RandomPlayer, HumanPlayer
 from typing import Any, Optional
 
 
@@ -18,7 +18,7 @@ def train(game: TicTacToe, players: list[Player]):
         # if isinstance(players[1], AiPlayer):
         #     players[1].greed *= 0.0001
 
-        for _ in range(100):
+        for _ in range(1000):
             game.reset()
 
             done = False
