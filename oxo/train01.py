@@ -11,7 +11,7 @@ def train(game: TicTacToe, players: list[Player]):
     wins0 = 0
     wins1 = 0
 
-    for _ in range(1000):
+    for _ in range(10000):
         # if isinstance(players[0], AiPlayer):
         #     players[0].epsilon -= 0.0002
         # if isinstance(players[1], AiPlayer):

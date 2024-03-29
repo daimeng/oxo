@@ -40,14 +40,6 @@ class RandomPlayer(Player):
 
 
 @njit()
-def newrow():
-    return np.zeros(9)
-
-
-aispec = [("Q", types.DictType(types.int64, types.float64[:]))]
-
-
-@njit()
 def random_move(game: TicTacToe):
     r = random.randint(0, game.left)
     rr = r
@@ -59,6 +51,14 @@ def random_move(game: TicTacToe):
     raise Exception(
         f"Something went wrong: r={r}, rr={rr}, left={game.left}\n{game.board.reshape(3, 3)}"
     )
+
+
+@njit()
+def newrow():
+    return np.zeros(9)
+
+
+aispec = [("Q", types.DictType(types.int64, types.float64[:]))]
 
 
 @jitclass(aispec)
