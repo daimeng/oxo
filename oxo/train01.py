@@ -7,19 +7,21 @@ from .player import AiPlayer, Player, RandomPlayer, HumanPlayer
 
 @njit()
 def train(game: TicTacToe, players: list[Player]):
-    xp: list[tuple[int, int, float]] = [(-1, 0, 0), (-1, 0, 0)]
     wins0 = 0
     wins1 = 0
+    xp0: list[tuple[int, int, float]] = [(-1, 0, 0.0)]
+    xp1: list[tuple[int, int, float]] = [(-1, 0, 0.0)]
 
-    for _ in range(10000):
+    for _ in range(1000):
         # if isinstance(players[0], AiPlayer):
         #     players[0].epsilon -= 0.0002
         # if isinstance(players[1], AiPlayer):
         #     players[1].epsilon *= 0.0001
 
         for _ in range(1000):
+            xp0.clear()
+            xp1.clear()
             game.reset()
-
             done = False
 
             while not done:
@@ -27,11 +29,6 @@ def train(game: TicTacToe, players: list[Player]):
                 player = players[pnum]
 
                 state = pack(game.board)
-
-                # update experience before replacing
-                s, a, r = xp[pnum]
-                if s != -1 and isinstance(player, AiPlayer):
-                    player.update(s, a, r, state)
 
                 # get next experience
                 action = player.request_move(game)
@@ -52,20 +49,29 @@ def train(game: TicTacToe, players: list[Player]):
                             wins1 += 1
                         done = True
 
-                xp[pnum] = (state, action, reward)
+                xp = xp0 if pnum == 0 else xp1
+                xp.append((state, action, reward))
 
-                # if final state
                 if done:
-                    if isinstance(player, AiPlayer):
-                        player.update(state, action, reward, pack(game.board))
-
-                    # final update for losing player
+                    # assign negative reward to loser's last move
                     pnum = int(game.current_player_id != 1)
-                    player = players[pnum]
-                    s, a, r = xp[pnum]
+                    xp = xp0 if pnum == 0 else xp1
+                    lastxp = xp[-1]
+                    xp[-1] = (lastxp[0], lastxp[1], -1)
 
-                    if s != -1 and isinstance(player, AiPlayer):
-                        player.update(s, a, -r, state)
+            # do weight updates
+            for pnum in range(2):
+                player = players[pnum]
+                nstate = pack(game.board)
+                xp = xp0 if pnum == 0 else xp1
+                xplen = len(xp)
+
+                for i in range(xplen - 1, -1, -1):
+                    state, action, reward = xp[i]
+
+                    if isinstance(player, AiPlayer):
+                        player.update(state, action, reward, nstate)
+                    nstate = state
 
     return wins0, wins1
 
