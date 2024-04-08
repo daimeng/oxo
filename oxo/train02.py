@@ -36,16 +36,19 @@ def train(game: TicTacToe, players: list[Player]):
                 # get next experience
                 action = player.request_move(game)
                 reward = 0.0
+                lreward = 0.0
                 match game.make_move(action):
                     case 3:
                         reward = -10.0
                     case 2:
                         reward = 0.0
                     case 0:
-                        reward = 0.0
+                        reward = 0.9
+                        lreward = 0.9
                         done = True
                     case x:
-                        reward = 1
+                        reward = 1.0
+                        lreward = -1.0
                         if x == 1:
                             wins0 += 1
                         elif x == -1:
@@ -65,7 +68,7 @@ def train(game: TicTacToe, players: list[Player]):
                     s, a, r = xp[pnum]
 
                     if s != -1 and isinstance(player, AiPlayer):
-                        player.update(s, a, -r, state)
+                        player.update(s, a, lreward, state)
 
     return wins0, wins1
 

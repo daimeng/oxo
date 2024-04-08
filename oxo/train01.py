@@ -33,16 +33,19 @@ def train(game: TicTacToe, players: list[Player]):
                 # get next experience
                 action = player.request_move(game)
                 reward = 0.0
+                lreward = 0.0
                 match game.make_move(action):
                     case 3:
                         reward = -10.0
                     case 2:
                         reward = 0.0
                     case 0:
-                        reward = 0.0
+                        reward = 0.9
+                        lreward = 0.9
                         done = True
                     case x:
-                        reward = 1
+                        reward = 1.0
+                        lreward = -1.0
                         if x == 1:
                             wins0 += 1
                         elif x == -1:
@@ -57,7 +60,7 @@ def train(game: TicTacToe, players: list[Player]):
                     pnum = int(game.current_player_id != 1)
                     xp = xp0 if pnum == 0 else xp1
                     lastxp = xp[-1]
-                    xp[-1] = (lastxp[0], lastxp[1], -1)
+                    xp[-1] = (lastxp[0], lastxp[1], lreward)
 
             # do weight updates
             for pnum in range(2):
