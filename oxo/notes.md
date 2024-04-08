@@ -21,5 +21,6 @@ Results are surprisingly worse for player two with backprop. Against an AI playe
 
 ## V3
 Setting tie reward to something high seems to fix the rest of player 2 issues. Seems to be consistently 0 losses to random.
+I think this is because without the reward, there is no incentive to go for a tie. Player 2 can instead just try a weird placement and wait for Player 1 to do a random move (epsilon greed), then swoop in for a lucky win.
 
 # Neural Network Bot
