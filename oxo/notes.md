@@ -16,11 +16,12 @@ Ideas for improvement:
 - Double Q Learning
 - Back propagating game results
 
-## V2 Back prop
-Results are surprisingly worse for player two with backprop. Against an AI player, the results are worse than training vs Random.
+## Back prop
+Results are surprisingly worse for player two with backprop. For player 2, training against an AI player, the results are worse than training vs Random. This may be because player 1 trains too fast
 
-## V3
-Setting tie reward to something high seems to fix the rest of player 2 issues. Seems to be consistently 0 losses to random.
-I think this is because without the reward, there is no incentive to go for a tie. Player 2 can instead just try a weird placement and wait for Player 1 to do a random move (epsilon greed), then swoop in for a lucky win.
+## Ties and punishment for loss
+Reward for loss or ties create some interesting changes. In earlier versions there was no punishment for loss or reward for tie.
+
+Because I never ramped greed down or up (stayed at episolon 0.5). This caused player 2 to shoot for the moon and try to get lucky wins instead of accepting a draw. Giving either a reward for tie or a punishment for loss causes player 2 to accept draws much more.
 
 # Neural Network Bot

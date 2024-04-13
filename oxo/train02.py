@@ -43,8 +43,8 @@ def train(game: TicTacToe, players: list[Player]):
                     case 2:
                         reward = 0.0
                     case 0:
-                        reward = 0.9
-                        lreward = 0.9
+                        reward = 0
+                        lreward = 0
                         done = True
                     case x:
                         reward = 1.0
@@ -65,7 +65,7 @@ def train(game: TicTacToe, players: list[Player]):
                     # final update for losing player
                     pnum = int(game.current_player_id != 1)
                     player = players[pnum]
-                    s, a, r = xp[pnum]
+                    s, a, _ = xp[pnum]
 
                     if s != -1 and isinstance(player, AiPlayer):
                         player.update(s, a, lreward, state)
