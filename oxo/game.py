@@ -17,7 +17,7 @@ CHECKS = [
 
 
 @njit()
-def pack(board) -> int:
+def pack(board: np.ndarray) -> int:
     s = 0
     for b in board:
         s += b + 1
