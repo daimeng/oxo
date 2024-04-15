@@ -71,7 +71,7 @@ def train(game: TicTacToe, players: list[NnPlayer]):
                 for i in range(xplen - 1, -1, -1):
                     state, action, reward = xp[i]
 
-                    if isinstance(player, AiPlayer):
+                    if isinstance(player, NnPlayer):
                         # ignore reward for now
                         player.update(state, action, reward + qv)
 
@@ -89,6 +89,14 @@ def main(opts):
 
     w0, w1 = train(game, trainPlayers)
     print(w0, w1)
+
+    if "plot" in opts:
+        from matplotlib import pyplot
+        from .plot import smooth
+
+        if isinstance(trainPlayers[0], NnPlayer):
+            pyplot.plot(smooth(trainPlayers[0].loss[1::100]))
+            pyplot.show()
 
     if "play" in opts or "play2" in opts:
         if "play" in opts:

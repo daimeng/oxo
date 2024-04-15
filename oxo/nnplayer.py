@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from numba import njit, types
+from numba.typed import List
 from numba.experimental import jitclass
 from .player import Player, random_move
 from .game import TicTacToe, pack
@@ -11,6 +12,7 @@ nnspec = [
     ("b1", types.Array(types.float64, 2, "C")),
     ("W2", types.Array(types.float64, 2, "C")),
     ("b2", types.Array(types.float64, 2, "C")),
+    ("loss", types.ListType(types.float64)),
 ]
 
 
@@ -20,21 +22,24 @@ class NnPlayer(Player):
     b1: np.ndarray
     W2: np.ndarray
     b2: np.ndarray
+
     lr: float
     discount: float
     epsilon: float
+    loss: list[float]
 
-    def __init__(self, lr=0.1, discount=1.0, epsilon=0.5):
+    def __init__(self, lr=0.00001, discount=1.0, epsilon=0.5):
         # input x hidden
 
-        self.W1 = np.random.rand(9, 36) - 0.5
-        self.b1 = np.random.rand(1, 36) - 0.5
-        self.W2 = np.random.rand(36, 9) - 0.5
+        self.W1 = np.random.rand(9, 360) - 0.5
+        self.b1 = np.random.rand(1, 360) - 0.5
+        self.W2 = np.random.rand(360, 9) - 0.5
         self.b2 = np.random.rand(1, 9) - 0.5
 
         self.lr = lr
         self.discount = discount
         self.epsilon = epsilon
+        self.loss = List.empty_list(types.float64)
 
     def request_move(self, game: TicTacToe) -> int:
         X = game.board.reshape(1, 9).astype(np.float64)
@@ -62,7 +67,8 @@ class NnPlayer(Player):
         # A2 = Z2x / np.sum(Z2x)
 
         # sigmoid
-        A2 = 1 / (1 + np.exp(-Z2))
+        # A2 = 1 / (1 + np.exp(-Z2))
+        A2 = Z2
         return A2, Z2, A1, Z1
 
     def update(self, state: np.ndarray, action: int, reward: float):
@@ -71,13 +77,15 @@ class NnPlayer(Player):
         qvalues, Z2, A1, Z1 = self.forward(X)
 
         # TD target, -1 for illegal moves
-        target = qvalues - (state != 0)
+        target = np.where(state == 0, qvalues, -1)
         target[0, action] = reward
 
         error = qvalues - target
+        loss = qvalues[0, action] - reward
+        self.loss.append(loss**2)
 
-        sig_deriv_q = qvalues * (1 - qvalues)
-        dZ2 = error * sig_deriv_q
+        # sig_deriv_q = qvalues * (1 - qvalues)
+        dZ2 = error  # * sig_deriv_q
 
         # 36x9 = 36x1 * 1x9
         dW2 = A1.T.dot(dZ2)
