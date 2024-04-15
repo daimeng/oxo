@@ -92,11 +92,11 @@ def main(opts):
 
     if "play" in opts or "play2" in opts:
         if "play" in opts:
-            if isinstance(trainPlayers[0], AiPlayer):
+            if isinstance(trainPlayers[0], NnPlayer):
                 trainPlayers[0].epsilon = 0
             players: list[Player] = [trainPlayers[0], HumanPlayer()]
         else:
-            if isinstance(trainPlayers[1], AiPlayer):
+            if isinstance(trainPlayers[1], NnPlayer):
                 trainPlayers[1].epsilon = 0
             players: list[Player] = [HumanPlayer(), trainPlayers[1]]
 

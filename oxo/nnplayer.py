@@ -27,7 +27,6 @@ class NnPlayer(Player):
     def __init__(self, lr=0.1, discount=1.0, epsilon=0.5):
         # input x hidden
 
-        # 36 neurons
         self.W1 = np.random.rand(9, 36) - 0.5
         self.b1 = np.random.rand(1, 36) - 0.5
         self.W2 = np.random.rand(36, 9) - 0.5
@@ -51,12 +50,12 @@ class NnPlayer(Player):
     def forward(
         self, X: np.ndarray
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        # 1x9 * 9x36 = 1x36
-        Z1 = np.dot(X, self.W1) + self.b1
+        # 1x36 = 1x9 * 9x36
+        Z1 = X.dot(self.W1) + self.b1
         A1 = np.maximum(0, Z1)  # ReLU
 
-        # 1x36 * 36x9 = 1x9
-        Z2 = np.dot(A1, self.W2) + self.b2
+        # 1x9 = 1x36 * 36x9
+        Z2 = A1.dot(self.W2) + self.b2
 
         # # 1x9, softmax
         # Z2x = np.exp(Z2)
@@ -80,16 +79,17 @@ class NnPlayer(Player):
         sig_deriv_q = qvalues * (1 - qvalues)
         dZ2 = error * sig_deriv_q
 
-        # 36x1 * 1x9 = 36x9
+        # 36x9 = 36x1 * 1x9
         dW2 = A1.T.dot(dZ2)
-        db2 = np.sum(dW2, axis=0)
+        db2 = dZ2
 
-        # 1x9 * 9x36 = 1x36
-        dZ1 = error.dot(self.W2.T) * (Z1 > 0)
+        # 1x36 = 1x9 * 9x36
+        ReLU_deriv = Z1 > 0
+        dZ1 = dZ2.dot(self.W2.T) * ReLU_deriv
 
-        # 9x1 * 1x36 = 9x36
+        # 9x36 = 9x1 * 1x36
         dW1 = X.T.dot(dZ1)
-        db1 = np.sum(dW1, axis=0)
+        db1 = dZ1
 
         self.W2 -= self.lr * dW2
         self.b2 -= self.lr * db2
