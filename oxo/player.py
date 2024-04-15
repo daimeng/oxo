@@ -1,6 +1,6 @@
 from numba import njit, types
 from numba.experimental import jitclass
-from numba.typed import Dict
+from numba.typed import Dict, List
 import random
 from .game import TicTacToe, pack
 
@@ -58,7 +58,10 @@ def newrow():
     return np.zeros(9)
 
 
-aispec = [("Q", types.DictType(types.int64, types.float64[:]))]
+aispec = [
+    ("Q", types.DictType(types.int64, types.float64[:])),
+    ("loss", types.ListType(types.float64)),
+]
 
 
 @jitclass(aispec)
@@ -67,12 +70,17 @@ class AiPlayer(Player):
     lr: float
     discount: float
     epsilon: float
+    loss: list[float]
 
     def __init__(self, lr=0.1, discount=1.0, epsilon=0.5):
-        self.Q = Dict.empty(key_type=types.int64, value_type=types.float64[:])
         self.lr = lr
         self.discount = discount
         self.epsilon = epsilon
+        self.reset()
+
+    def reset(self):
+        self.Q = Dict.empty(key_type=types.int64, value_type=types.float64[:])
+        self.loss = List.empty_list(types.float64)
 
     def request_move(self, game: TicTacToe) -> int:
         state = pack(game.board)
@@ -86,7 +94,7 @@ class AiPlayer(Player):
 
         return action
 
-    def update(self, state: int, action: int, reward: float, nstate: int):
+    def update(self, state: int, action: int, reward: float, nstate: int) -> float:
         # print_board(np.frombuffer(state, dtype="int8"))
         # print(
         #     action,
@@ -106,7 +114,11 @@ class AiPlayer(Player):
         # max of new state
         next_max = np.max(self.Q[nstate])
 
+        target = reward + self.discount * next_max
+
+        loss = 0.5 * (oldv - target) ** 2
+        self.loss.append(loss)
+
         # higher learning rate takes more from future rewards
-        self.Q[state][action] = (1 - self.lr) * oldv + self.lr * (
-            reward + self.discount * next_max
-        )
+        self.Q[state][action] = oldv - self.lr * oldv + self.lr * target
+        return loss

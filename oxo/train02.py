@@ -17,7 +17,7 @@ def train(game: TicTacToe, players: list[Player]):
         # if isinstance(players[1], AiPlayer):
         #     players[1].epsilon *= 0.0001
 
-        for _ in range(1000):
+        for _ in range(100):
             game.reset()
 
             done = False
@@ -73,12 +73,25 @@ def train(game: TicTacToe, players: list[Player]):
     return wins0, wins1
 
 
+def smooth(x, w=100):
+    return np.convolve(x, np.ones(w), "valid") / w
+
+
 def main(opts):
     game = TicTacToe()
     players: list[Player] = [AiPlayer(epsilon=0.5), AiPlayer(epsilon=0.5)]
 
     w0, w1 = train(game, players)
     print(w0, w1)
+
+    if "plot" in opts:
+        from matplotlib import pyplot
+
+        if isinstance(players[0], AiPlayer):
+            pyplot.plot(smooth(players[0].loss[1::100]))
+            pyplot.show()
+        # if isinstance(players[1], AiPlayer):
+        #     pyplot.plot(players[1].loss)
 
     if "play" in opts or "play2" in opts:
         if "play" in opts:

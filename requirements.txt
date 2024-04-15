@@ -2,4 +2,5 @@
 # tensorflow==2.15.0
 numpy==1.26.4
 numba==0.59.0
+matplotlib
 # pip install keras==3.0.5 after
